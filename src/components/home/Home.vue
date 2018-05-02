@@ -6,9 +6,11 @@
 
     <ul class="characters-list">
       <li class="characters-item" v-for="character of characters" :key="character.id">
-        <div class="card">
-          <my-card :name="character.name" :description="character.description" :url="character.url" ></my-card>
-        </div>
+          <my-card :name="character.name" :description="character.description" :imgUrl="character.url" >
+            <router-link :to="{ name: 'character', params: { id: character.id } }">
+              <my-button btnStyle="btn-primary" text="Saiba Mais"/>
+            </router-link>
+          </my-card>
       </li>
     </ul>
   </div>
@@ -16,40 +18,28 @@
 
 <script>
 import Card from "../shared/card/Card.vue";
-import md5 from "md5";
+import Button from "../shared/button/Button.vue"
+import { mapGetters } from 'vuex'
 
 export default {
   components: {
-    "my-card": Card
+    "my-card": Card,
+    "my-button": Button,
   },
 
   data() {
     return {
       titleList: "Lista de Heróis",
-      characters: []
+      characters: [],
     };
   },
 
+  computed: mapGetters({
+    characters: this.$store.getters.allCharacters()
+  }),
+
   created() {
-    const date = Date.now();
-    const hash = md5(
-      `${date}${"8704285253e2b1808f2f9ad2aedd19efe704d3a3"}${"42340bc8065ec9d1d255ef79bb82d8f3"}`
-    );
-    console.log(hash);
-    let promise = this.$http.get(
-      `https://gateway.marvel.com/v1/public/events/29/characters?limit=10&ts=${date}&apikey=42340bc8065ec9d1d255ef79bb82d8f3&hash=${hash}`
-    );
-    promise
-      .then(res => {
-        this.characters = res.data.data.results;
-        this.characters.forEach(character => {
-          character.url = `${character.thumbnail.path}/standard_xlarge.${
-            character.thumbnail.extension
-          }`;
-        });
-        console.log(this.characters);
-      })
-      .catch(err => console.log("Error on request characters", err));
+    this.$store.dispatch('getAllCharacters')
   }
 };
 </script>
@@ -63,20 +53,5 @@ export default {
   display: inline-block;
 }
 
-.card {
-  padding: 0 auto;
-  border: solid 2px grey;
-  display: inline-block;
-  margin: 5px;
-  box-shadow: 5px 5px 10px grey;
-  width: 200px;
-  height: 100%;
-  vertical-align: top;
-  text-align: center;
-}
-
-.card .card-title {
-  font-weight: bold;
-}
 </style>
 
